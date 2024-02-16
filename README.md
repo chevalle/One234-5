@@ -1,7 +1,8 @@
 Pre-requisite :
 
 ```
-Ubuntu 22.04 g5.2xlarge instance
+Ubuntu, 22.04 LTS (latest, first one in the list)
+Instance type: g5.2xlarge instance
 Storage : 200Gb
 Security group : SSH (if you use that), 7860 port allowed 
 ```
@@ -13,7 +14,7 @@ IAM role associated to instance with :
 - Bedrock invoke model (optional)
 
 
-1 - Clone repo and start runbook to install dependencies and download container 
+1 - Connect to instance, clone repo and start runbook to install dependencies and download container 
 
 ```
 git clone https://github.com/chevalle/One234-5.git
