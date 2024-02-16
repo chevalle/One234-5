@@ -33,7 +33,7 @@ chmod +x runbook.sh
 sudo docker run -p 7860:7860 --name One-2-3-45_demo --gpus all -it public.ecr.aws/f8j2d1v7/one2345-3dprint
 ```
 
-**5 - Connect to http://{ec2-public-ip}:7860 to use the gradio interface**
+**5 - Connect to http://{ec2-public-ip}:7860 (or private IP) to use the gradio interface**
 
 **API reference :**
 
@@ -41,9 +41,9 @@ sudo docker run -p 7860:7860 --name One-2-3-45_demo --gpus all -it public.ecr.aw
 
 ```
 from gradio_client import Client
-client = Client("https://one-2-3-45-one-2-3-45.hf.space/")
+client = Client("http://{instance-ip}:7860")
 # example input image
-input_img_path = "https://huggingface.co/spaces/One-2-3-45/One-2-3-45/resolve/main/demo_examples/01_wild_hydrant.png"
+input_img_path = "path-to-img.jpg"
 ```
 
 **Single image to 3D mesh**
