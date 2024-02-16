@@ -2,7 +2,7 @@
 
 ```
 Ubuntu, 22.04 LTS (latest, first one in the list)
-Instance type: g5.2xlarge instance
+Instance type: g5.2xlarge
 Storage : 200Gb
 Security group : SSH (if you use that), 7860 port allowed 
 ```
