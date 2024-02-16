@@ -29,5 +29,5 @@ chmod +x runbook.sh
 4 - Run the container 
 
 ```
-sudo docker -p 7860:7860 run --name One-2-3-45_demo --gpus all -it public.ecr.aws/f8j2d1v7/one2345-3dprint
+sudo docker run -p 7860:7860 --name One-2-3-45_demo --gpus all -it public.ecr.aws/f8j2d1v7/one2345-3dprint
 ```
