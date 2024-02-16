@@ -11,7 +11,7 @@ IAM role associated to instance with :
 
 - ECR-public access to download container image
 - sts:GetServiceBearerToken allowed
-- Bedrock invoke model (optional)
+- Bedrock invoke model (optional, you can import your own images)
 
 
 1 - Connect to instance, clone repo and start runbook to install dependencies and download container 
