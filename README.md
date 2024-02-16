@@ -9,7 +9,7 @@ Security group : SSH (if you use that), 7860 port allowed
 IAM role associated to instance with : 
 
 - ECR public access
-- sts service bearer token allowed
+- sts:GetServiceBearerToken allowed
 - Bedrock invoke model (optional)
 
 
