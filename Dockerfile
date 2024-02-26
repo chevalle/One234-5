@@ -4,7 +4,9 @@ FROM pytorch/pytorch:2.2.1-cuda11.8-cudnn8-devel
 # Set up time zone.
 ENV TZ=UTC
 ARG DEBIAN_FRONTEND=noninteractive
-ENV PYTHONUNBUFFERED=1
+ENV PYTHONUNBUFFERED=TRUE
+ENV PYTHONDONTWRITEBYTECODE=TRUE
+ENV PATH="/opt/program:${PATH}"
 ENV TORCH_CUDA_ARCH_LIST="8.6+PTX"
 ENV IABN_FORCE_CUDA=1
 ENV PATH="/usr/local/cuda-11.8/bin:$PATH"
@@ -27,7 +29,14 @@ RUN apt-get update \
   g++-11 \
   libsm6 libxrender1 libfontconfig1 libxext6 \
   libxrender-dev \
+  nginx \
+  ca-certificates \
  && rm -rf /var/lib/apt/lists/*
+
+
+RUN wget https://bootstrap.pypa.io/get-pip.py && python3 get-pip.py && \
+    pip install flask gevent gunicorn && \
+        rm -rf /root/.cache
 
 
 COPY ./requirements.txt /code/requirements.txt
@@ -37,29 +46,9 @@ RUN pip install -r requirements.txt
 RUN TORCH_CUDA_ARCH_LIST="8.6+PTX" IABN_FORCE_CUDA=1 FORCE_CUDA=1 pip3 install --no-cache-dir inplace_abn
 RUN FORCE_CUDA=1 TORCH_CUDA_ARCH_LIST="8.6+PTX" IABN_FORCE_CUDA=1 pip install --no-cache-dir git+https://github.com/mit-han-lab/torchsparse.git@v1.4.0
 
-
-
-
-# Set up a new user named "user" with user ID 1000
-RUN useradd -m -u 1000 user
-# Switch to the "user" user
-USER user
-# Set home to the user's home directory
-ENV HOME=/home/user \
-        PATH=/home/user/.local/bin:$PATH \
-    PYTHONPATH=$HOME/app \
-        PYTHONUNBUFFERED=1 \
-        SYSTEM=spaces
-
-
-
-
-# Set the working directory to the user's home directory
-WORKDIR $HOME/app
+WORKDIR /opt/program
 
 # Copy the current directory contents into the container at $HOME/app setting the owner to the user
-COPY --chown=user . $HOME/app
+COPY . /opt/program
 
-RUN python3 download_ckpt.py
-
-CMD ["python3", "app.py"]
+#CMD ["python3", "serve.py"]

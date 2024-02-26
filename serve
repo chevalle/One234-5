@@ -1,0 +1,101 @@
+#!/usr/bin/env python
+
+# This file implements the scoring service shell. You don't necessarily need to modify it for various
+# algorithms. It starts nginx and gunicorn with the correct configurations and then simply waits until
+# gunicorn exits.
+#
+# The flask server is specified to be the app object in wsgi.py
+#
+# We set the following parameters:
+#
+# Parameter                Environment Variable              Default Value
+# ---------                --------------------              -------------
+# number of workers        MODEL_SERVER_WORKERS              the number of CPU cores
+# timeout                  MODEL_SERVER_TIMEOUT              60 seconds
+
+import multiprocessing
+import os
+import signal
+import subprocess
+import sys
+import urllib.request
+from tqdm import tqdm
+
+def download_checkpoint(url, save_path):
+    try:
+        with urllib.request.urlopen(url) as response, open(save_path, 'wb') as file:
+            file_size = int(response.info().get('Content-Length', -1))
+            chunk_size = 8192
+            num_chunks = file_size // chunk_size if file_size > chunk_size else 1
+
+            with tqdm(total=file_size, unit='B', unit_scale=True, desc='Downloading', ncols=100) as pbar:
+                for chunk in iter(lambda: response.read(chunk_size), b''):
+                    file.write(chunk)
+                    pbar.update(len(chunk))
+        
+        print(f"Checkpoint downloaded and saved to: {save_path}")
+    except Exception as e:
+        print(f"Error downloading checkpoint: {e}")
+
+
+
+
+cpu_count = multiprocessing.cpu_count()
+
+model_server_timeout = os.environ.get('MODEL_SERVER_TIMEOUT', 600)
+#model_server_workers = int(os.environ.get('MODEL_SERVER_WORKERS', cpu_count))
+model_server_workers = 1
+
+def sigterm_handler(nginx_pid, gunicorn_pid):
+    try:
+        os.kill(nginx_pid, signal.SIGQUIT)
+    except OSError:
+        pass
+    try:
+        os.kill(gunicorn_pid, signal.SIGTERM)
+    except OSError:
+        pass
+
+    sys.exit(0)
+
+def start_server():
+    print('Starting the inference server with {} workers.'.format(model_server_workers))
+
+
+    # link the log streams to stdout/err so they will be logged to the container logs
+    subprocess.check_call(['ln', '-sf', '/dev/stdout', '/var/log/nginx/access.log'])
+    subprocess.check_call(['ln', '-sf', '/dev/stderr', '/var/log/nginx/error.log'])
+
+    nginx = subprocess.Popen(['nginx', '-c', '/opt/program/nginx.conf'])
+    gunicorn = subprocess.Popen(['gunicorn',
+                                 '--timeout', str(model_server_timeout),
+                                 '-k', 'sync',
+                                 '-b', 'unix:/tmp/gunicorn.sock',
+                                 '-w', str(model_server_workers),
+                                 'wsgi:app'])
+
+    signal.signal(signal.SIGTERM, lambda a, b: sigterm_handler(nginx.pid, gunicorn.pid))
+
+    # Exit the inference server upon exit of either subprocess
+    pids = set([nginx.pid, gunicorn.pid])
+    while True:
+        pid, _ = os.wait()
+        if pid in pids:
+            break
+
+    sigterm_handler(nginx.pid, gunicorn.pid)
+    print('Inference server exiting')
+
+# The main routine to invoke the start function.
+
+if __name__ == '__main__':
+    ckpts = {
+        "/tmp/sam_vit_h_4b8939.pth": "https://huggingface.co/One-2-3-45/code/resolve/main/sam_vit_h_4b8939.pth",
+        "/tmp/zero123-xl.ckpt": "https://huggingface.co/One-2-3-45/code/resolve/main/zero123-xl.ckpt",
+        "/tmp/elevation_estimate/utils/weights/indoor_ds_new.ckpt" : "https://huggingface.co/One-2-3-45/code/resolve/main/elevation_estimate/utils/weights/indoor_ds_new.ckpt",
+        "/tmp/reconstruction/exp/lod0/checkpoints/ckpt_215000.pth": "https://huggingface.co/One-2-3-45/code/resolve/main/SparseNeuS_demo_v1/exp/lod0/checkpoints/ckpt_215000.pth"
+    }
+    for ckpt_name, ckpt_url in ckpts.items():
+        print(f"Downloading checkpoint: {ckpt_name}")
+        download_checkpoint(ckpt_url, ckpt_name)
+    start_server()
