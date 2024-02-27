@@ -92,8 +92,8 @@ if __name__ == '__main__':
     ckpts = {
         "/tmp/sam_vit_h_4b8939.pth": "https://huggingface.co/One-2-3-45/code/resolve/main/sam_vit_h_4b8939.pth",
         "/tmp/zero123-xl.ckpt": "https://huggingface.co/One-2-3-45/code/resolve/main/zero123-xl.ckpt",
-        "/tmp/elevation_estimate/utils/weights/indoor_ds_new.ckpt" : "https://huggingface.co/One-2-3-45/code/resolve/main/elevation_estimate/utils/weights/indoor_ds_new.ckpt",
-        "/tmp/reconstruction/exp/lod0/checkpoints/ckpt_215000.pth": "https://huggingface.co/One-2-3-45/code/resolve/main/SparseNeuS_demo_v1/exp/lod0/checkpoints/ckpt_215000.pth"
+        "/opt/program/one2345_elev_est/utils/weights/indoor_ds_new.ckpt" : "https://huggingface.co/One-2-3-45/code/resolve/main/elevation_estimate/utils/weights/indoor_ds_new.ckpt",
+        "/opt/program/reconstruction/exp/lod0/checkpoints/ckpt_215000.pth": "https://huggingface.co/One-2-3-45/code/resolve/main/SparseNeuS_demo_v1/exp/lod0/checkpoints/ckpt_215000.pth"
     }
     for ckpt_name, ckpt_url in ckpts.items():
         print(f"Downloading checkpoint: {ckpt_name}")
